@@ -1,5 +1,6 @@
 package airlinemanagementsystem;
 
+import airlinemanagementsystem.hhmm.FlightManagerFrame;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
@@ -37,14 +38,18 @@ public class Home extends JFrame implements ActionListener{
         JMenuItem bookFlight = new JMenuItem("Book Flight");
         bookFlight.addActionListener(this);
         details.add(bookFlight);
-        
+
         JMenuItem journeyDetails = new JMenuItem("Journey Details");
         journeyDetails.addActionListener(this);
         details.add(journeyDetails);
-        
+
         JMenuItem ticketCancellation = new JMenuItem("Cancel Ticket");
         ticketCancellation.addActionListener(this);
         details.add(ticketCancellation);
+
+        JMenuItem hhmmManager = new JMenuItem("HH:MM Flight Manager");
+        hhmmManager.addActionListener(this);
+        details.add(hhmmManager);
         
         JMenu ticket = new JMenu("Ticket");
         menubar.add(ticket);
@@ -70,6 +75,8 @@ public class Home extends JFrame implements ActionListener{
             new JourneyDetails();
         } else if (text.equals("Cancel Ticket")) {
             new Cancel();
+        } else if (text.equals("HH:MM Flight Manager")) {
+            SwingUtilities.invokeLater(() -> new FlightManagerFrame().setVisible(true));
         }
     }
     
