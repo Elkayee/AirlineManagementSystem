@@ -6,7 +6,6 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -128,72 +127,6 @@ public class FlightDAO {
     public List<Flight> findAll() throws SQLException {
         try (Connection connection = getConnection();
              PreparedStatement ps = connection.prepareStatement("SELECT * FROM FlightsHHMM ORDER BY FlightDate, STD")) {
-            try (ResultSet rs = ps.executeQuery()) {
-                List<Flight> flights = new ArrayList<>();
-                while (rs.next()) {
-                    flights.add(mapRow(rs));
-                }
-                return flights;
-            }
-        }
-    }
-
-    public List<Flight> findByFilter(FlightFilter filter) throws SQLException {
-        StringBuilder sql = new StringBuilder("SELECT * FROM FlightsHHMM WHERE 1=1");
-        List<Object> parameters = new ArrayList<>();
-
-        filter.getFlightDate().ifPresent(date -> {
-            sql.append(" AND FlightDate = ?");
-            parameters.add(date);
-        });
-        filter.getDep().ifPresent(dep -> {
-            sql.append(" AND Dep = ?");
-            parameters.add(dep);
-        });
-        filter.getArr().ifPresent(arr -> {
-            sql.append(" AND Arr = ?");
-            parameters.add(arr);
-        });
-        filter.getAcType().ifPresent(acType -> {
-            sql.append(" AND ACType LIKE ?");
-            parameters.add('%' + acType + '%');
-        });
-        filter.getReg().ifPresent(reg -> {
-            sql.append(" AND Reg LIKE ?");
-            parameters.add('%' + reg + '%');
-        });
-        filter.getStdFrom().ifPresent(stdFrom -> {
-            sql.append(" AND STD >= ?");
-            parameters.add(stdFrom);
-        });
-        filter.getStdTo().ifPresent(stdTo -> {
-            sql.append(" AND STD <= ?");
-            parameters.add(stdTo);
-        });
-        sql.append(" ORDER BY FlightDate, STD");
-
-        try (Connection connection = getConnection();
-             PreparedStatement ps = connection.prepareStatement(sql.toString())) {
-            for (int i = 0; i < parameters.size(); i++) {
-                ps.setObject(i + 1, parameters.get(i));
-            }
-            try (ResultSet rs = ps.executeQuery()) {
-                List<Flight> flights = new ArrayList<>();
-                while (rs.next()) {
-                    flights.add(mapRow(rs));
-                }
-                return flights;
-            }
-        }
-    }
-
-    public List<Flight> findFlightsForRegBetween(String reg, LocalDate fromInclusive, LocalDate toInclusive) throws SQLException {
-        String sql = "SELECT * FROM FlightsHHMM WHERE Reg = ? AND FlightDate BETWEEN ? AND ? ORDER BY FlightDate, STD";
-        try (Connection connection = getConnection();
-             PreparedStatement ps = connection.prepareStatement(sql)) {
-            ps.setString(1, reg);
-            ps.setString(2, fromInclusive.toString());
-            ps.setString(3, toInclusive.toString());
             try (ResultSet rs = ps.executeQuery()) {
                 List<Flight> flights = new ArrayList<>();
                 while (rs.next()) {

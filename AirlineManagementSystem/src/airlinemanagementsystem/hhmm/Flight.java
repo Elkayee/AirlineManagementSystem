@@ -50,7 +50,10 @@ public class Flight {
     }
 
     public LocalDate getFlightLocalDate() {
-        return TimeUtil.parseIsoDate(flightDate);
+        if (flightDate == null || flightDate.isBlank()) {
+            return null;
+        }
+        return LocalDate.parse(flightDate);
     }
 
     public String getFlightNo() {
