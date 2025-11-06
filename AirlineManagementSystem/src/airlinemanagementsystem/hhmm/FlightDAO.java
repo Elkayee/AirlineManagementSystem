@@ -22,31 +22,50 @@ public class FlightDAO {
     }
 
     private void initialise() {
-        try (Connection connection = getConnection();
-             Statement statement = connection.createStatement()) {
-            statement.executeUpdate(
-                "CREATE TABLE IF NOT EXISTS FlightsHHMM (" +
-                    " Id INTEGER PRIMARY KEY AUTOINCREMENT," +
-                    " FlightDate TEXT NOT NULL," +
-                    " FlightNo TEXT NOT NULL," +
-                    " Type TEXT," +
-                    " Reg TEXT," +
-                    " ACType TEXT," +
-                    " Dep TEXT NOT NULL," +
-                    " Arr TEXT NOT NULL," +
-                    " STD TEXT NOT NULL," +
-                    " STA TEXT NOT NULL," +
-                    " BLOCK TEXT," +
-                    " FLThr TEXT," +
-                    " Distance INTEGER," +
-                    " AC_Config TEXT," +
-                    " Seats INTEGER" +
-                ")");
-            statement.executeUpdate("CREATE INDEX IF NOT EXISTS idx_FlightsHHMM_date ON FlightsHHMM(FlightDate)");
-            statement.executeUpdate("CREATE INDEX IF NOT EXISTS idx_FlightsHHMM_route ON FlightsHHMM(Dep, Arr)");
-            statement.executeUpdate("CREATE INDEX IF NOT EXISTS idx_FlightsHHMM_reg ON FlightsHHMM(Reg)");
+        try (Connection connection = getConnection()) {
+            try (Statement statement = connection.createStatement()) {
+                statement.executeUpdate(
+                    "CREATE TABLE IF NOT EXISTS FlightsHHMM (" +
+                        " Id INTEGER PRIMARY KEY AUTOINCREMENT," +
+                        " FlightDate TEXT NOT NULL," +
+                        " FlightNo TEXT NOT NULL," +
+                        " Type TEXT," +
+                        " Reg TEXT," +
+                        " ACType TEXT," +
+                        " Dep TEXT NOT NULL," +
+                        " Arr TEXT NOT NULL," +
+                        " STD TEXT NOT NULL," +
+                        " STA TEXT NOT NULL," +
+                        " BLOCK TEXT," +
+                        " FLThr TEXT," +
+                        " Distance INTEGER," +
+                        " AC_Config TEXT," +
+                        " Seats INTEGER" +
+                    ")");
+                statement.executeUpdate("CREATE INDEX IF NOT EXISTS idx_FlightsHHMM_date ON FlightsHHMM(FlightDate)");
+                statement.executeUpdate("CREATE INDEX IF NOT EXISTS idx_FlightsHHMM_route ON FlightsHHMM(Dep, Arr)");
+                statement.executeUpdate("CREATE INDEX IF NOT EXISTS idx_FlightsHHMM_reg ON FlightsHHMM(Reg)");
+            }
+            seedIfEmpty(connection);
         } catch (SQLException ex) {
             throw new IllegalStateException("Unable to initialise database", ex);
+        }
+    }
+
+    private void seedIfEmpty(Connection connection) throws SQLException {
+        try (Statement statement = connection.createStatement();
+             ResultSet rs = statement.executeQuery("SELECT COUNT(*) FROM FlightsHHMM")) {
+            if (rs.next() && rs.getInt(1) == 0) {
+                String sql = "INSERT INTO FlightsHHMM (FlightDate, FlightNo, Type, Reg, ACType, Dep, Arr, STD, STA, BLOCK, FLThr, Distance, AC_Config, Seats) " +
+                    "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
+                try (PreparedStatement ps = connection.prepareStatement(sql)) {
+                    for (Flight flight : FlightSeedData.flights()) {
+                        bindFlight(ps, flight);
+                        ps.addBatch();
+                    }
+                    ps.executeBatch();
+                }
+            }
         }
     }
 
